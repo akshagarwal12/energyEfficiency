@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flow & Form — Household Energy Flows</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;1,9..144,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0d0d0d;
+            --bg-secondary: #161616;
+            --bg-card: #1a1a1a;
+            --text-primary: #f5f2eb;
+            --text-secondary: #9a9589;
+            --accent-warm: #e8a87c;
+            --accent-cool: #7cb8e8;
+            --accent-green: #7ce8a8;
+            --accent-pink: #e87cb8;
+            --accent-yellow: #e8d87c;
+            --border-subtle: rgba(245, 242, 235, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'IBM Plex Mono', monospace;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Grain overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+            opacity: 0.03;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        /* Header */
+        header {
+            padding: 3rem 4rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-subtle);
+            position: relative;
+        }
+
+        .logo {
+            font-family: 'Fraunces', serif;
+            font-size: 1.5rem;
+            font-weight: 500;
+            letter-spacing: -0.02em;
+        }
+
+        .logo span {
+            color: var(--accent-warm);
+        }
+
+        nav {
+            display: flex;
+            gap: 2.5rem;
+        }
+
+        nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            transition: color 0.3s ease;
+        }
+
+        nav a:hover {
+            color: var(--text-primary);
+        }
+
+        /* Hero */
+        .hero {
+            padding: 8rem 4rem 6rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .hero h1 {
+            font-family: 'Fraunces', serif;
+            font-size: clamp(3rem, 7vw, 5.5rem);
+            font-weight: 300;
+            line-height: 1.1;
+            letter-spacing: -0.03em;
+            margin-bottom: 2rem;
+        }
+
+        .hero h1 em {
+            font-style: italic;
+            color: var(--accent-warm);
+        }
+
+        .hero-text {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            max-width: 480px;
+            margin-bottom: 3rem;
+        }
+
+        .hero-visual {
+            position: relative;
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hero-diagram {
+            width: 100%;
+            height: 100%;
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: -4rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            animation: float 2s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(8px); }
+        }
+
+        .scroll-indicator svg {
+            width: 20px;
+            height: 20px;
+            stroke: var(--text-secondary);
+        }
+
+        /* Section styling */
+        section {
+            padding: 6rem 4rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        .section-number {
+            font-family: 'Fraunces', serif;
+            font-size: 0.9rem;
+            color: var(--accent-warm);
+            font-style: italic;
+        }
+
+        .section-line {
+            height: 1px;
+            background: var(--border-subtle);
+        }
+
+        .section-title {
+            font-family: 'Fraunces', serif;
+            font-size: 2.5rem;
+            font-weight: 300;
+            letter-spacing: -0.02em;
+        }
+
+        /* Diagram cards */
+        .diagram-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+        }
+
+        .diagram-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 2rem;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .diagram-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .diagram-card:hover {
+            border-color: rgba(245, 242, 235, 0.15);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .diagram-card.full-width {
+            grid-column: span 2;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-title {
+            font-family: 'Fraunces', serif;
+            font-size: 1.5rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .card-tag {
+            background: rgba(232, 168, 124, 0.1);
+            color: var(--accent-warm);
+            padding: 0.4rem 0.8rem;
+            border-radius: 100px;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .card-tag.water {
+            background: rgba(124, 184, 232, 0.1);
+            color: var(--accent-cool);
+        }
+
+        .card-tag.material {
+            background: rgba(124, 232, 168, 0.1);
+            color: var(--accent-green);
+        }
+
+        .sankey-container {
+            height: 280px;
+            margin-bottom: 1.5rem;
+        }
+
+        .sankey-container.tall {
+            height: 350px;
+        }
+
+        .card-stats {
+            display: flex;
+            gap: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-subtle);
+        }
+
+        .stat {
+            flex: 1;
+        }
+
+        .stat-value {
+            font-family: 'Fraunces', serif;
+            font-size: 1.75rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        /* Sankey styling */
+        .sankey-container svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .node rect {
+            fill-opacity: 0.9;
+            stroke: none;
+            transition: fill-opacity 0.3s ease;
+        }
+
+        .node:hover rect {
+            fill-opacity: 1;
+        }
+
+        .node text {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            fill: var(--text-primary);
+            pointer-events: none;
+        }
+
+        .link {
+            fill: none;
+            stroke-opacity: 0.3;
+            transition: stroke-opacity 0.3s ease;
+        }
+
+        .link:hover {
+            stroke-opacity: 0.6;
+        }
+
+        /* Footer */
+        footer {
+            padding: 4rem;
+            border-top: 1px solid var(--border-subtle);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 4rem;
+        }
+
+        .footer-text {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.75rem;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--text-primary);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .hero-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .diagram-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .diagram-card.full-width {
+                grid-column: span 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            header, .hero, section, footer {
+                padding-left: 1.5rem;
+                padding-right: 1.5rem;
+            }
+            
+            nav {
+                display: none;
+            }
+            
+            .section-header {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .section-line {
+                display: none;
+            }
+        }
+
+        /* Tooltip */
+        .sankey-tooltip {
+            position: fixed;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            z-index: 100;
+            max-width: 200px;
+        }
+
+        .sankey-tooltip.visible {
+            opacity: 1;
+        }
+
+        .tooltip-title {
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .tooltip-value {
+            color: var(--accent-warm);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">Flow<span>&</span>Form</div>
+        <nav>
+            <a href="#energy">Energy</a>
+            <a href="#water">Water</a>
+            <a href="#materials">Materials</a>
+            <a href="#about">About</a>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <div class="hero-grid">
+            <div class="hero-content">
+                <h1>Where does your <em>energy</em> really go?</h1>
+                <p class="hero-text">
+                    Every household object tells a story of transformation. 
+                    Energy flows in, changes form, and disperses. These Sankey 
+                    diagrams reveal the hidden pathways of power, water, and 
+                    materials through the things we use every day.
+                </p>
+            </div>
+            <div class="hero-visual">
+                <div class="hero-diagram" id="hero-sankey"></div>
+            </div>
+        </div>
+        <div class="scroll-indicator">
+            <span>Scroll to explore</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 5v14M19 12l-7 7-7-7"/>
+            </svg>
+        </div>
+    </section>
+
+    <section id="energy">
+        <div class="section-header">
+            <span class="section-number">01</span>
+            <div class="section-line"></div>
+            <h2 class="section-title">Energy Flows</h2>
+        </div>
+
+        <div class="diagram-grid">
+            <div class="diagram-card" data-delay="0">
+                <div class="card-header">
+                    <div>
+                        <h3 class="card-title">Incandescent Bulb</h3>
+                        <p class="card-subtitle">The classic light source</p>
+                    </div>
+                    <span class="card-tag">Energy</span>
+                </div>
+                <div class="sankey-container" id="sankey-bulb"></div>
+                <div class="card-stats">
+                    <div class="stat">
+                        <div class="stat-value">60W</div>
+                        <div class="stat-label">Input Power</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">5%</div>
+                        <div class="stat-label">Light Efficiency</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">95%</div>
+                        <div class="stat-label">Heat Loss</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="diagram-card" data-delay="100">
+                <div class="card-header">
+                    <div>
+                        <h3 class="card-title">LED Bulb</h3>
+                        <p class="card-subtitle">Modern efficient lighting</p>
+                    </div>
+                    <span class="card-tag">Energy</span>
+                </div>
+                <div class="sankey-container" id="sankey-led"></div>
+                <div class="card-stats">
+                    <div class="stat">
+                        <div class="stat-value">10W</div>
+                        <div class="stat-label">Input Power</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">40%</div>
+                        <div class="stat-label">Light Efficiency</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">60%</div>
+                        <div class="stat-label">Heat Loss</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="diagram-card full-width" data-delay="200">
+                <div class="card-header">
+                    <div>
+                        <h3 class="card-title">Refrigerator</h3>
+                        <p class="card-subtitle">Continuous thermal management</p>
+                    </div>
+                    <span class="card-tag">Energy</span>
+                </div>
+                <div class="sankey-container tall" id="sankey-fridge"></div>
+                <div class="card-stats">
+                    <div class="stat">
+                        <div class="stat-value">150W</div>
+                        <div class="stat-label">Average Power</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">400</div>
+                        <div class="stat-label">kWh/Year</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">2.5</div>
+                        <div class="stat-label">COP Rating</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">15%</div>
+                        <div class="stat-label">Of Home Energy</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="diagram-card" data-delay="300">
+                <div class="card-header">
+                    <div>
+                        <h3 class="card-title">Electric Kettle</h3>
+                        <p class="card-subtitle">Rapid water heating</p>
+                    </div>
+                    <span class="card-tag">Energy</span>
+                </div>
+                <div class="sankey-container" id="sankey-kettle"></div>
+                <div class="card-stats">
+                    <div class="stat">
+                        <div class="stat-value">2000W</div>
+                        <div class="stat-label">Power Draw</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">93%</div>
+                        <div class="stat-label">Efficiency</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="diagram-card" data-delay="400">
+                <div class="card-header">
+                    <div>
+                        <h3 class="card-title">Gas Furnace</h3>
+                        <p class="card-subtitle">Central home heating</p>
+                    </div>
+                    <span class="card-tag">Energy</span>
+                </div>
+                <div class="sankey-container" id="sankey-furnace"></div>
+                <div class="card-stats">
+                    <div class="stat">
+                        <div class="stat-value">80K</div>
+                        <div class="stat-label">BTU/Hour</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">95%</div>
+                        <div class="stat-label">AFUE Rating</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="water">
+        <div class="section-header">
+            <span class="section-number">02</span>
+            <div class="section-line"></div>
+            <h2 class="section-title">Water Systems</h2>
+        </div>
+
+        <div class="diagram-grid">
+            <div class="diagram-card full-width" data-delay="0">
+                <div class="card-header">
+                    <div>
+                        <h3 class="card-title">Washing Machine</h3>
+                        <p class="card-subtitle">Full cycle water distribution</p>
+                    </div>
+                    <span class="card-tag water">Water</span>
+                </div>
+                <div class="sankey-container tall" id="sankey-washer"></div>
+                <div class="card-stats">
+                    <div class="stat">
+                        <div class="stat-value">50L</div>
+                        <div class="stat-label">Per Cycle</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">5</div>
+                        <div class="stat-label">Rinse Cycles</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">40°C</div>
+                        <div class="stat-label">Avg Temp</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">300</div>
+                        <div class="stat-label">Cycles/Year</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="diagram-card" data-delay="100">
+                <div class="card-header">
+                    <div>
+                        <h3 class="card-title">Toilet</h3>
+                        <p class="card-subtitle">Dual flush system</p>
+                    </div>
+                    <span class="card-tag water">Water</span>
+                </div>
+                <div class="sankey-container" id="sankey-toilet"></div>
+                <div class="card-stats">
+                    <div class="stat">
+                        <div class="stat-value">6L</div>
+                        <div class="stat-label">Full Flush</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">3L</div>
+                        <div class="stat-label">Half Flush</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="diagram-card" data-delay="200">
+                <div class="card-header">
+                    <div>
+                        <h3 class="card-title">Dishwasher</h3>
+                        <p class="card-subtitle">Efficient cleaning cycle</p>
+                    </div>
+                    <span class="card-tag water">Water</span>
+                </div>
+                <div class="sankey-container" id="sankey-dishwasher"></div>
+                <div class="card-stats">
+                    <div class="stat">
+                        <div class="stat-value">12L</div>
+                        <div class="stat-label">Per Cycle</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">85%</div>
+                        <div class="stat-label">Water Saved vs Hand</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="materials">
+        <div class="section-header">
+            <span class="section-number">03</span>
+            <div class="section-line"></div>
+            <h2 class="section-title">Material Composition</h2>
+        </div>
+
+        <div class="diagram-grid">
+            <div class="diagram-card" data-delay="0">
+                <div class="card-header">
+                    <div>
+                        <h3 class="card-title">Smartphone</h3>
+                        <p class="card-subtitle">Materials by weight</p>
+                    </div>
+                    <span class="card-tag material">Materials</span>
+                </div>
+                <div class="sankey-container" id="sankey-phone"></div>
+                <div class="card-stats">
+                    <div class="stat">
+                        <div class="stat-value">175g</div>
+                        <div class="stat-label">Total Weight</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">62+</div>
+                        <div class="stat-label">Elements Used</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="diagram-card" data-delay="100">
+                <div class="card-header">
+                    <div>
+                        <h3 class="card-title">Car Battery</h3>
+                        <p class="card-subtitle">Lead-acid composition</p>
+                    </div>
+                    <span class="card-tag material">Materials</span>
+                </div>
+                <div class="sankey-container" id="sankey-battery"></div>
+                <div class="card-stats">
+                    <div class="stat">
+                        <div class="stat-value">18kg</div>
+                        <div class="stat-label">Total Weight</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">98%</div>
+                        <div class="stat-label">Recyclable</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p class="footer-text">© 2025 Flow & Form — Visualizing the invisible</p>
+        <div class="footer-links">
+            <a href="#energy">Energy</a>
+            <a href="#water">Water</a>
+            <a href="#materials">Materials</a>
+        </div>
+    </footer>
+
+    <div class="sankey-tooltip" id="tooltip">
+        <div class="tooltip-title"></div>
+        <div class="tooltip-value"></div>
+    </div>
+
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://unpkg.com/d3-sankey@0.12.3/dist/d3-sankey.min.js"></script>
+    <script>
+        // Color schemes
+        const colors = {
+            energy: {
+                input: '#e8a87c',
+                useful: '#7ce8a8',
+                waste: '#e87c7c',
+                secondary: '#e8d87c',
+                tertiary: '#7cb8e8'
+            },
+            water: {
+                input: '#7cb8e8',
+                clean: '#7ce8d8',
+                gray: '#a8a8a8',
+                waste: '#8888aa'
+            },
+            material: {
+                primary: '#7ce8a8',
+                secondary: '#e8d87c',
+                tertiary: '#7cb8e8',
+                quaternary: '#e87cb8',
+                quinary: '#e8a87c'
+            }
+        };
+
+        // Tooltip handling
+        const tooltip = d3.select('#tooltip');
+
+        function showTooltip(event, title, value) {
+            tooltip
+                .style('left', (event.pageX + 15) + 'px')
+                .style('top', (event.pageY - 10) + 'px')
+                .classed('visible', true);
+            tooltip.select('.tooltip-title').text(title);
+            tooltip.select('.tooltip-value').text(value);
+        }
+
+        function hideTooltip() {
+            tooltip.classed('visible', false);
+        }
+
+        // Sankey diagram creator
+        function createSankey(containerId, data, nodeColors) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            const margin = { top: 20, right: 120, bottom: 20, left: 20 };
+
+            const svg = d3.select(`#${containerId}`)
+                .append('svg')
+                .attr('width', width)
+                .attr('height', height);
+
+            const sankey = d3.sankey()
+                .nodeId(d => d.name)
+                .nodeWidth(12)
+                .nodePadding(16)
+                .nodeAlign(d3.sankeyLeft)
+                .extent([[margin.left, margin.top], [width - margin.right, height - margin.bottom]]);
+
+            const { nodes, links } = sankey({
+                nodes: data.nodes.map(d => ({ ...d })),
+                links: data.links.map(d => ({ ...d }))
+            });
+
+            // Draw links
+            const link = svg.append('g')
+                .attr('fill', 'none')
+                .selectAll('path')
+                .data(links)
+                .join('path')
+                .attr('class', 'link')
+                .attr('d', d3.sankeyLinkHorizontal())
+                .attr('stroke', d => nodeColors[d.source.name] || '#888')
+                .attr('stroke-width', d => Math.max(1, d.width))
+                .on('mouseover', function(event, d) {
+                    d3.select(this).attr('stroke-opacity', 0.6);
+                    showTooltip(event, `${d.source.name} → ${d.target.name}`, `${d.value} units`);
+                })
+                .on('mousemove', function(event) {
+                    tooltip
+                        .style('left', (event.pageX + 15) + 'px')
+                        .style('top', (event.pageY - 10) + 'px');
+                })
+                .on('mouseout', function() {
+                    d3.select(this).attr('stroke-opacity', 0.3);
+                    hideTooltip();
+                });
+
+            // Draw nodes
+            const node = svg.append('g')
+                .selectAll('g')
+                .data(nodes)
+                .join('g')
+                .attr('class', 'node');
+
+            node.append('rect')
+                .attr('x', d => d.x0)
+                .attr('y', d => d.y0)
+                .attr('height', d => Math.max(1, d.y1 - d.y0))
+                .attr('width', d => d.x1 - d.x0)
+                .attr('fill', d => nodeColors[d.name] || '#888')
+                .attr('rx', 2);
+
+            node.append('text')
+                .attr('x', d => d.x1 + 8)
+                .attr('y', d => (d.y1 + d.y0) / 2)
+                .attr('dy', '0.35em')
+                .attr('text-anchor', 'start')
+                .text(d => d.name)
+                .filter(d => d.x0 < width / 2)
+                .attr('x', d => d.x1 + 8);
+        }
+
+        // Hero diagram - simplified energy flow
+        const heroData = {
+            nodes: [
+                { name: 'Grid Power' },
+                { name: 'Home' },
+                { name: 'Lighting' },
+                { name: 'Heating' },
+                { name: 'Appliances' },
+                { name: 'Electronics' }
+            ],
+            links: [
+                { source: 'Grid Power', target: 'Home', value: 100 },
+                { source: 'Home', target: 'Heating', value: 40 },
+                { source: 'Home', target: 'Appliances', value: 30 },
+                { source: 'Home', target: 'Lighting', value: 15 },
+                { source: 'Home', target: 'Electronics', value: 15 }
+            ]
+        };
+
+        const heroColors = {
+            'Grid Power': colors.energy.input,
+            'Home': colors.energy.secondary,
+            'Lighting': colors.energy.useful,
+            'Heating': '#e87c7c',
+            'Appliances': colors.energy.tertiary,
+            'Electronics': '#b87ce8'
+        };
+
+        // Incandescent bulb
+        const bulbData = {
+            nodes: [
+                { name: 'Electricity' },
+                { name: 'Filament' },
+                { name: 'Heat' },
+                { name: 'Infrared' },
+                { name: 'Visible Light' }
+            ],
+            links: [
+                { source: 'Electricity', target: 'Filament', value: 100 },
+                { source: 'Filament', target: 'Heat', value: 80 },
+                { source: 'Filament', target: 'Infrared', value: 15 },
+                { source: 'Filament', target: 'Visible Light', value: 5 }
+            ]
+        };
+
+        const bulbColors = {
+            'Electricity': colors.energy.input,
+            'Filament': colors.energy.secondary,
+            'Heat': colors.energy.waste,
+            'Infrared': '#e8a87c',
+            'Visible Light': colors.energy.useful
+        };
+
+        // LED bulb
+        const ledData = {
+            nodes: [
+                { name: 'Electricity' },
+                { name: 'LED Chip' },
+                { name: 'Driver Loss' },
+                { name: 'Heat' },
+                { name: 'Light Output' }
+            ],
+            links: [
+                { source: 'Electricity', target: 'LED Chip', value: 85 },
+                { source: 'Electricity', target: 'Driver Loss', value: 15 },
+                { source: 'LED Chip', target: 'Light Output', value: 40 },
+                { source: 'LED Chip', target: 'Heat', value: 45 }
+            ]
+        };
+
+        const ledColors = {
+            'Electricity': colors.energy.input,
+            'LED Chip': colors.energy.secondary,
+            'Driver Loss': '#aa8888',
+            'Heat': colors.energy.waste,
+            'Light Output': colors.energy.useful
+        };
+
+        // Refrigerator
+        const fridgeData = {
+            nodes: [
+                { name: 'Electricity' },
+                { name: 'Compressor' },
+                { name: 'Fans' },
+                { name: 'Lights' },
+                { name: 'Controls' },
+                { name: 'Heat Pump' },
+                { name: 'Cooling' },
+                { name: 'Exhaust Heat' }
+            ],
+            links: [
+                { source: 'Electricity', target: 'Compressor', value: 80 },
+                { source: 'Electricity', target: 'Fans', value: 10 },
+                { source: 'Electricity', target: 'Lights', value: 5 },
+                { source: 'Electricity', target: 'Controls', value: 5 },
+                { source: 'Compressor', target: 'Heat Pump', value: 80 },
+                { source: 'Heat Pump', target: 'Cooling', value: 35 },
+                { source: 'Heat Pump', target: 'Exhaust Heat', value: 45 }
+            ]
+        };
+
+        const fridgeColors = {
+            'Electricity': colors.energy.input,
+            'Compressor': colors.energy.secondary,
+            'Fans': '#a8d8e8',
+            'Lights': '#e8e8a8',
+            'Controls': '#d8a8e8',
+            'Heat Pump': colors.energy.tertiary,
+            'Cooling': colors.energy.useful,
+            'Exhaust Heat': colors.energy.waste
+        };
+
+        // Electric Kettle
+        const kettleData = {
+            nodes: [
+                { name: 'Electricity' },
+                { name: 'Heating Element' },
+                { name: 'Water Heat' },
+                { name: 'Body Heat' },
+                { name: 'Steam Loss' }
+            ],
+            links: [
+                { source: 'Electricity', target: 'Heating Element', value: 100 },
+                { source: 'Heating Element', target: 'Water Heat', value: 93 },
+                { source: 'Heating Element', target: 'Body Heat', value: 5 },
+                { source: 'Heating Element', target: 'Steam Loss', value: 2 }
+            ]
+        };
+
+        const kettleColors = {
+            'Electricity': colors.energy.input,
+            'Heating Element': colors.energy.secondary,
+            'Water Heat': colors.energy.useful,
+            'Body Heat': colors.energy.waste,
+            'Steam Loss': '#a8a8d8'
+        };
+
+        // Gas Furnace
+        const furnaceData = {
+            nodes: [
+                { name: 'Natural Gas' },
+                { name: 'Combustion' },
+                { name: 'Heat Exchanger' },
+                { name: 'Heated Air' },
+                { name: 'Flue Gases' },
+                { name: 'Standby Loss' }
+            ],
+            links: [
+                { source: 'Natural Gas', target: 'Combustion', value: 100 },
+                { source: 'Combustion', target: 'Heat Exchanger', value: 95 },
+                { source: 'Combustion', target: 'Flue Gases', value: 5 },
+                { source: 'Heat Exchanger', target: 'Heated Air', value: 90 },
+                { source: 'Heat Exchanger', target: 'Standby Loss', value: 5 }
+            ]
+        };
+
+        const furnaceColors = {
+            'Natural Gas': colors.energy.input,
+            'Combustion': '#e88c5c',
+            'Heat Exchanger': colors.energy.secondary,
+            'Heated Air': colors.energy.useful,
+            'Flue Gases': '#888888',
+            'Standby Loss': colors.energy.waste
+        };
+
+        // Washing Machine
+        const washerData = {
+            nodes: [
+                { name: 'Fresh Water' },
+                { name: 'Pre-wash' },
+                { name: 'Main Wash' },
+                { name: 'Rinse 1' },
+                { name: 'Rinse 2' },
+                { name: 'Final Rinse' },
+                { name: 'Drain' },
+                { name: 'Clothes' }
+            ],
+            links: [
+                { source: 'Fresh Water', target: 'Pre-wash', value: 8 },
+                { source: 'Fresh Water', target: 'Main Wash', value: 15 },
+                { source: 'Fresh Water', target: 'Rinse 1', value: 10 },
+                { source: 'Fresh Water', target: 'Rinse 2', value: 10 },
+                { source: 'Fresh Water', target: 'Final Rinse', value: 7 },
+                { source: 'Pre-wash', target: 'Drain', value: 8 },
+                { source: 'Main Wash', target: 'Drain', value: 15 },
+                { source: 'Rinse 1', target: 'Drain', value: 10 },
+                { source: 'Rinse 2', target: 'Drain', value: 10 },
+                { source: 'Final Rinse', target: 'Clothes', value: 2 },
+                { source: 'Final Rinse', target: 'Drain', value: 5 }
+            ]
+        };
+
+        const washerColors = {
+            'Fresh Water': colors.water.input,
+            'Pre-wash': '#5ca8d8',
+            'Main Wash': '#4898c8',
+            'Rinse 1': '#6cb8e8',
+            'Rinse 2': '#7cc8f8',
+            'Final Rinse': colors.water.clean,
+            'Drain': colors.water.gray,
+            'Clothes': colors.energy.useful
+        };
+
+        // Toilet
+        const toiletData = {
+            nodes: [
+                { name: 'Tank Water' },
+                { name: 'Bowl' },
+                { name: 'Flush Action' },
+                { name: 'Waste Transport' },
+                { name: 'Sewer' }
+            ],
+            links: [
+                { source: 'Tank Water', target: 'Bowl', value: 6 },
+                { source: 'Bowl', target: 'Flush Action', value: 6 },
+                { source: 'Flush Action', target: 'Waste Transport', value: 4 },
+                { source: 'Flush Action', target: 'Sewer', value: 2 },
+                { source: 'Waste Transport', target: 'Sewer', value: 4 }
+            ]
+        };
+
+        const toiletColors = {
+            'Tank Water': colors.water.input,
+            'Bowl': '#6cb8e8',
+            'Flush Action': '#5ca8d8',
+            'Waste Transport': '#888888',
+            'Sewer': colors.water.gray
+        };
+
+        // Dishwasher
+        const dishwasherData = {
+            nodes: [
+                { name: 'Fresh Water' },
+                { name: 'Pre-rinse' },
+                { name: 'Main Wash' },
+                { name: 'Rinse' },
+                { name: 'Recirculated' },
+                { name: 'Drain' }
+            ],
+            links: [
+                { source: 'Fresh Water', target: 'Pre-rinse', value: 3 },
+                { source: 'Fresh Water', target: 'Main Wash', value: 5 },
+                { source: 'Fresh Water', target: 'Rinse', value: 4 },
+                { source: 'Pre-rinse', target: 'Recirculated', value: 2 },
+                { source: 'Pre-rinse', target: 'Drain', value: 1 },
+                { source: 'Recirculated', target: 'Main Wash', value: 2 },
+                { source: 'Main Wash', target: 'Drain', value: 7 },
+                { source: 'Rinse', target: 'Drain', value: 4 }
+            ]
+        };
+
+        const dishwasherColors = {
+            'Fresh Water': colors.water.input,
+            'Pre-rinse': '#6cb8e8',
+            'Main Wash': '#5ca8d8',
+            'Rinse': colors.water.clean,
+            'Recirculated': '#88c8e8',
+            'Drain': colors.water.gray
+        };
+
+        // Smartphone
+        const phoneData = {
+            nodes: [
+                { name: 'Raw Materials' },
+                { name: 'Glass' },
+                { name: 'Aluminum' },
+                { name: 'Plastics' },
+                { name: 'Battery' },
+                { name: 'Circuit Board' },
+                { name: 'Display' },
+                { name: 'Body' },
+                { name: 'Components' }
+            ],
+            links: [
+                { source: 'Raw Materials', target: 'Glass', value: 35 },
+                { source: 'Raw Materials', target: 'Aluminum', value: 25 },
+                { source: 'Raw Materials', target: 'Plastics', value: 15 },
+                { source: 'Raw Materials', target: 'Battery', value: 15 },
+                { source: 'Raw Materials', target: 'Circuit Board', value: 10 },
+                { source: 'Glass', target: 'Display', value: 35 },
+                { source: 'Aluminum', target: 'Body', value: 25 },
+                { source: 'Plastics', target: 'Components', value: 15 },
+                { source: 'Battery', target: 'Components', value: 15 },
+                { source: 'Circuit Board', target: 'Components', value: 10 }
+            ]
+        };
+
+        const phoneColors = {
+            'Raw Materials': colors.material.primary,
+            'Glass': '#88d8e8',
+            'Aluminum': '#c8c8c8',
+            'Plastics': colors.material.quaternary,
+            'Battery': colors.material.secondary,
+            'Circuit Board': colors.material.quinary,
+            'Display': '#88d8e8',
+            'Body': '#c8c8c8',
+            'Components': colors.material.tertiary
+        };
+
+        // Car Battery
+        const batteryData = {
+            nodes: [
+                { name: 'Total Mass' },
+                { name: 'Lead' },
+                { name: 'Acid' },
+                { name: 'Plastic' },
+                { name: 'Plates' },
+                { name: 'Electrolyte' },
+                { name: 'Casing' }
+            ],
+            links: [
+                { source: 'Total Mass', target: 'Lead', value: 60 },
+                { source: 'Total Mass', target: 'Acid', value: 30 },
+                { source: 'Total Mass', target: 'Plastic', value: 10 },
+                { source: 'Lead', target: 'Plates', value: 60 },
+                { source: 'Acid', target: 'Electrolyte', value: 30 },
+                { source: 'Plastic', target: 'Casing', value: 10 }
+            ]
+        };
+
+        const batteryColors = {
+            'Total Mass': colors.material.primary,
+            'Lead': '#888888',
+            'Acid': colors.material.secondary,
+            'Plastic': colors.material.quaternary,
+            'Plates': '#aaaaaa',
+            'Electrolyte': '#d8c878',
+            'Casing': '#e87cb8'
+        };
+
+        // Initialize all diagrams
+        function initDiagrams() {
+            createSankey('hero-sankey', heroData, heroColors);
+            createSankey('sankey-bulb', bulbData, bulbColors);
+            createSankey('sankey-led', ledData, ledColors);
+            createSankey('sankey-fridge', fridgeData, fridgeColors);
+            createSankey('sankey-kettle', kettleData, kettleColors);
+            createSankey('sankey-furnace', furnaceData, furnaceColors);
+            createSankey('sankey-washer', washerData, washerColors);
+            createSankey('sankey-toilet', toiletData, toiletColors);
+            createSankey('sankey-dishwasher', dishwasherData, dishwasherColors);
+            createSankey('sankey-phone', phoneData, phoneColors);
+            createSankey('sankey-battery', batteryData, batteryColors);
+        }
+
+        // Scroll animation for cards
+        function animateCards() {
+            const cards = document.querySelectorAll('.diagram-card');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const delay = entry.target.dataset.delay || 0;
+                        setTimeout(() => {
+                            entry.target.classList.add('visible');
+                        }, delay);
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            cards.forEach(card => observer.observe(card));
+        }
+
+        // Handle window resize
+        function handleResize() {
+            // Clear all SVGs and recreate
+            document.querySelectorAll('.sankey-container svg, .hero-diagram svg').forEach(svg => svg.remove());
+            initDiagrams();
+        }
+
+        // Debounce resize
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(handleResize, 250);
+        });
+
+        // Initialize
+        function init() {
+            if (typeof d3 === 'undefined' || typeof d3.sankey === 'undefined') {
+                setTimeout(init, 100);
+                return;
+            }
+            initDiagrams();
+            animateCards();
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    </script>
+</body>
+</html>
